@@ -572,188 +572,207 @@ static void vgpu_unlock_hmac_sha256(void* dst,
 
 typedef struct {
 	uint8_t num_blocks; /* Number of 16 byte blocks up to 'sign'. */
-	uint16_t unk0;
+	uint8_t name1_len; /* Length of first name (unused?) */
+	uint8_t name2_len; /* Length of second name (used by VM) */
 	uint16_t dev_id;
 	uint16_t vend_id; /* Check skipped if zero. */
 	uint16_t subsys_id;
 	uint16_t subsys_vend_id; /* Check skipped if zero. */
-	uint8_t unk1[7];
-	char name[31];
+	char name1_2[38]; /* First and second name, no separation. */
 	uint8_t sign[0x20];
 }
 __attribute__((packed))
 vgpu_unlock_vgpu_t;
 
+/* Helper macro to initialize the structure above. */
+#define VGPU(dev_id, subsys_id, name) \
+	{ (10 + 2 * strlen(name) + 15) / 16, /* num_blocks */     \
+	  strlen(name),                      /* name1_len */      \
+	  strlen(name),                      /* name2_len */      \
+	  (dev_id),                          /* dev_id */         \
+	  0,                                 /* vend_id */        \
+	  (subsys_id),                       /* subsys_id */      \
+	  0,                                 /* subsys_vend_id */ \
+	  { name name } }                    /* name1_2 */
+
 static vgpu_unlock_vgpu_t vgpu_unlock_vgpu[] =
 {
-	/* Tesla M10 */
-	{ 2, 0x1007, 0x13bd, 0, 0x11cc, 0, { 0 }, { "GRID M10-0B"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11cd, 0, { 0 }, { "GRID M10-1B"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x1339, 0, { 0 }, { "GRID M10-1B4"     } },
-	{ 2, 0x1007, 0x13bd, 0, 0x1286, 0, { 0 }, { "GRID M10-2B"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x12ee, 0, { 0 }, { "GRID M10-2B4"     } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11ce, 0, { 0 }, { "GRID M10-0Q"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11cf, 0, { 0 }, { "GRID M10-1Q"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11d0, 0, { 0 }, { "GRID M10-2Q"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11d1, 0, { 0 }, { "GRID M10-4Q"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11d2, 0, { 0 }, { "GRID M10-8Q"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11d3, 0, { 0 }, { "GRID M10-1A"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11d4, 0, { 0 }, { "GRID M10-2A"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11d5, 0, { 0 }, { "GRID M10-4A"      } },
-	{ 2, 0x1007, 0x13bd, 0, 0x11d6, 0, { 0 }, { "GRID M10-8A"      } },
+	/* Tesla M10 (Maxwell) */
+	VGPU(0x13bd, 0x11cc, "GRID M10-0B"),
+	VGPU(0x13bd, 0x11cd, "GRID M10-1B"),
+	VGPU(0x13bd, 0x1339, "GRID M10-1B4"),
+	VGPU(0x13bd, 0x1286, "GRID M10-2B"),
+	VGPU(0x13bd, 0x12ee, "GRID M10-2B4"),
+	VGPU(0x13bd, 0x11ce, "GRID M10-0Q"),
+	VGPU(0x13bd, 0x11cf, "GRID M10-1Q"),
+	VGPU(0x13bd, 0x11d0, "GRID M10-2Q"),
+	VGPU(0x13bd, 0x11d1, "GRID M10-4Q"),
+	VGPU(0x13bd, 0x11d2, "GRID M10-8Q"),
+	VGPU(0x13bd, 0x11d3, "GRID M10-1A"),
+	VGPU(0x13bd, 0x11d4, "GRID M10-2A"),
+	VGPU(0x13bd, 0x11d5, "GRID M10-4A"),
+	VGPU(0x13bd, 0x11d6, "GRID M10-8A"),
 
-	/* Tesla M60 */
-	{ 2, 0x1007, 0x13f2, 0, 0x114c, 0, { 0 }, { "GRID M60-0Q"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x114d, 0, { 0 }, { "GRID M60-1Q"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x114e, 0, { 0 }, { "GRID M60-2Q"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x114f, 0, { 0 }, { "GRID M60-4Q"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x1150, 0, { 0 }, { "GRID M60-8Q"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x1176, 0, { 0 }, { "GRID M60-0B"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x1177, 0, { 0 }, { "GRID M60-1B"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x117D, 0, { 0 }, { "GRID M60-2B"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x1337, 0, { 0 }, { "GRID M60-1B4"     } },
-	{ 2, 0x1007, 0x13f2, 0, 0x12ec, 0, { 0 }, { "GRID M60-2B4"     } },
-	{ 2, 0x1007, 0x13f2, 0, 0x11ae, 0, { 0 }, { "GRID M60-1A"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x11aF, 0, { 0 }, { "GRID M60-2A"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x11b0, 0, { 0 }, { "GRID M60-4A"      } },
-	{ 2, 0x1007, 0x13f2, 0, 0x11b1, 0, { 0 }, { "GRID M60-8A"      } },
+	/* Tesla M60 (Maxwell 2.0) */
+	VGPU(0x13f2, 0x114c, "GRID M60-0Q"),
+	VGPU(0x13f2, 0x114d, "GRID M60-1Q"),
+	VGPU(0x13f2, 0x114e, "GRID M60-2Q"),
+	VGPU(0x13f2, 0x114f, "GRID M60-4Q"),
+	VGPU(0x13f2, 0x1150, "GRID M60-8Q"),
+	VGPU(0x13f2, 0x1176, "GRID M60-0B"),
+	VGPU(0x13f2, 0x1177, "GRID M60-1B"),
+	VGPU(0x13f2, 0x117D, "GRID M60-2B"),
+	VGPU(0x13f2, 0x1337, "GRID M60-1B4"),
+	VGPU(0x13f2, 0x12ec, "GRID M60-2B4"),
+	VGPU(0x13f2, 0x11ae, "GRID M60-1A"),
+	VGPU(0x13f2, 0x11aF, "GRID M60-2A"),
+	VGPU(0x13f2, 0x11b0, "GRID M60-4A"),
+	VGPU(0x13f2, 0x11b1, "GRID M60-8A"),
 
-	/* Tesla P40 */
-	{ 2, 0x1007, 0x1b38, 0, 0x11e7, 0, { 0 }, { "GRID P40-1B"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11e8, 0, { 0 }, { "GRID P40-1Q"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11e9, 0, { 0 }, { "GRID P40-2Q"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11ea, 0, { 0 }, { "GRID P40-3Q"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11eb, 0, { 0 }, { "GRID P40-4Q"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11ec, 0, { 0 }, { "GRID P40-6Q"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11ed, 0, { 0 }, { "GRID P40-8Q"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11ee, 0, { 0 }, { "GRID P40-12Q"     } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11ef, 0, { 0 }, { "GRID P40-24Q"     } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11f0, 0, { 0 }, { "GRID P40-1A"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11f1, 0, { 0 }, { "GRID P40-2A"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11f2, 0, { 0 }, { "GRID P40-3A"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11f3, 0, { 0 }, { "GRID P40-4A"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11f4, 0, { 0 }, { "GRID P40-6A"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11f5, 0, { 0 }, { "GRID P40-8A"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11f6, 0, { 0 }, { "GRID P40-12A"     } },
-	{ 2, 0x1007, 0x1b38, 0, 0x11f7, 0, { 0 }, { "GRID P40-24A"     } },
-	{ 2, 0x1007, 0x1b38, 0, 0x1287, 0, { 0 }, { "GRID P40-2B"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x12ef, 0, { 0 }, { "GRID P40-2B4"     } },
-	{ 2, 0x1007, 0x1b38, 0, 0x133a, 0, { 0 }, { "GRID P40-1B4"     } },
-	{ 2, 0x1007, 0x1b38, 0, 0x137e, 0, { 0 }, { "GRID P40-24C"     } },
-	{ 2, 0x1007, 0x1b38, 0, 0x1381, 0, { 0 }, { "GRID P40-4C"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x1382, 0, { 0 }, { "GRID P40-6C"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x1383, 0, { 0 }, { "GRID P40-8C"      } },
-	{ 2, 0x1007, 0x1b38, 0, 0x1384, 0, { 0 }, { "GRID P40-12C"     } },
+	/* Tesla P4 (Pascal) */
+	VGPU(0x1bb3, 0x1203, "GRID P4-1B"),
+	VGPU(0x1bb3, 0x1204, "GRID P4-1Q"),
+	VGPU(0x1bb3, 0x1205, "GRID P4-2Q"),
+	VGPU(0x1bb3, 0x1206, "GRID P4-4Q"),
+	VGPU(0x1bb3, 0x1207, "GRID P4-8Q"),
+	VGPU(0x1bb3, 0x1208, "GRID P4-1A"),
+	VGPU(0x1bb3, 0x1209, "GRID P4-2A"),
+	VGPU(0x1bb3, 0x120a, "GRID P4-4A"),
+	VGPU(0x1bb3, 0x120b, "GRID P4-8A"),
+	VGPU(0x1bb3, 0x1288, "GRID P4-2B"),
+	VGPU(0x1bb3, 0x12f1, "GRID P4-2B4"),
+	VGPU(0x1bb3, 0x133c, "GRID P4-1B4"),
+	VGPU(0x1bb3, 0x1380, "GRID P4-8C"),
+	VGPU(0x1bb3, 0x1385, "GRID P4-4C"),
 
-	/* Tesla P4 */
-	{ 2, 0x1007, 0x1bb3, 0, 0x1203, 0, { 0 }, { "GRID P4-1B"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1204, 0, { 0 }, { "GRID P4-1Q"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1205, 0, { 0 }, { "GRID P4-2Q"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1206, 0, { 0 }, { "GRID P4-4Q"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1207, 0, { 0 }, { "GRID P4-8Q"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1208, 0, { 0 }, { "GRID P4-1A"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1209, 0, { 0 }, { "GRID P4-2A"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x120a, 0, { 0 }, { "GRID P4-4A"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x120b, 0, { 0 }, { "GRID P4-8A"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1288, 0, { 0 }, { "GRID P4-2B"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x12f1, 0, { 0 }, { "GRID P4-2B4"      } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x133c, 0, { 0 }, { "GRID P4-1B4"      } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1380, 0, { 0 }, { "GRID P4-8C"       } },
-	{ 2, 0x1007, 0x1bb3, 0, 0x1385, 0, { 0 }, { "GRID P4-4C"       } },
+	/* Tesla P40 (Pascal) */
+	VGPU(0x1b38, 0x11e7, "GRID P40-1B"),
+	VGPU(0x1b38, 0x11e8, "GRID P40-1Q"),
+	VGPU(0x1b38, 0x11e9, "GRID P40-2Q"),
+	VGPU(0x1b38, 0x11ea, "GRID P40-3Q"),
+	VGPU(0x1b38, 0x11eb, "GRID P40-4Q"),
+	VGPU(0x1b38, 0x11ec, "GRID P40-6Q"),
+	VGPU(0x1b38, 0x11ed, "GRID P40-8Q"),
+	VGPU(0x1b38, 0x11ee, "GRID P40-12Q"),
+	VGPU(0x1b38, 0x11ef, "GRID P40-24Q"),
+	VGPU(0x1b38, 0x11f0, "GRID P40-1A"),
+	VGPU(0x1b38, 0x11f1, "GRID P40-2A"),
+	VGPU(0x1b38, 0x11f2, "GRID P40-3A"),
+	VGPU(0x1b38, 0x11f3, "GRID P40-4A"),
+	VGPU(0x1b38, 0x11f4, "GRID P40-6A"),
+	VGPU(0x1b38, 0x11f5, "GRID P40-8A"),
+	VGPU(0x1b38, 0x11f6, "GRID P40-12A"),
+	VGPU(0x1b38, 0x11f7, "GRID P40-24A"),
+	VGPU(0x1b38, 0x1287, "GRID P40-2B"),
+	VGPU(0x1b38, 0x12ef, "GRID P40-2B4"),
+	VGPU(0x1b38, 0x133a, "GRID P40-1B4"),
+	VGPU(0x1b38, 0x137e, "GRID P40-24C"),
+	VGPU(0x1b38, 0x1381, "GRID P40-4C"),
+	VGPU(0x1b38, 0x1382, "GRID P40-6C"),
+	VGPU(0x1b38, 0x1383, "GRID P40-8C"),
+	VGPU(0x1b38, 0x1384, "GRID P40-12C"),
 	
-	/* Tesla V100 16GB PCIE */
-	{ 2, 0x1007, 0x1db4, 0, 0x1254, 0, { 0 }, { "GRID V100-1A     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1255, 0, { 0 }, { "GRID V100-2A     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1256, 0, { 0 }, { "GRID V100-4A     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1257, 0, { 0 }, { "GRID V100-8A     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1258, 0, { 0 }, { "GRID V100-16A    "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x124e, 0, { 0 }, { "GRID V100-1B     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x128f, 0, { 0 }, { "GRID V100-2B     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1340, 0, { 0 }, { "GRID V100-1B4    "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x12f5, 0, { 0 }, { "GRID V100-2B4    "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x124f, 0, { 0 }, { "GRID V100-1Q     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1250, 0, { 0 }, { "GRID V100-2Q     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1251, 0, { 0 }, { "GRID V100-4Q     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1252, 0, { 0 }, { "GRID V100-8Q     "} },
-	{ 2, 0x1007, 0x1db4, 0, 0x1253, 0, { 0 }, { "GRID V100-16Q    "} },
+	/* Tesla V100 32GB PCIE (Volta) */
+	VGPU(0x1db6, 0x12bd, "GRID V100D-1B"),
+	VGPU(0x1db6, 0x12be, "GRID V100D-2B"),
+	VGPU(0x1db6, 0x12f7, "GRID V100D-2B4"),
+	VGPU(0x1db6, 0x1342, "GRID V100D-1B4"),
+	VGPU(0x1db6, 0x12bf, "GRID V100D-1Q"),
+	VGPU(0x1db6, 0x12c0, "GRID V100D-2Q"),
+	VGPU(0x1db6, 0x12c1, "GRID V100D-4Q"),
+	VGPU(0x1db6, 0x12c2, "GRID V100D-8Q"),
+	VGPU(0x1db6, 0x12c3, "GRID V100D-16Q"),
+	VGPU(0x1db6, 0x12c4, "GRID V100D-32Q"),
+	VGPU(0x1db6, 0x12c5, "GRID V100D-1A"),
+	VGPU(0x1db6, 0x12c6, "GRID V100D-2A"),
+	VGPU(0x1db6, 0x12c7, "GRID V100D-4A"),
+	VGPU(0x1db6, 0x12c8, "GRID V100D-8A"),
+	VGPU(0x1db6, 0x12c9, "GRID V100D-16A"),
+	VGPU(0x1db6, 0x12ca, "GRID V100D-32A"),
+	VGPU(0x1db6, 0x1395, "GRID V100D-4C"),
+	VGPU(0x1db6, 0x1396, "GRID V100D-8C"),
+	VGPU(0x1db6, 0x1397, "GRID V100D-16C"),	
+	VGPU(0x1db6, 0x1377, "GRID V100D-32C"),	
 
-	/* Quadro RTX 6000 */
-	{ 3, 0x1007, 0x1e30, 0, 0x1325, 0, { 0 }, { "GRID RTX6000-1Q"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x1326, 0, { 0 }, { "GRID RTX6000-2Q"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x1327, 0, { 0 }, { "GRID RTX6000-3Q"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x1328, 0, { 0 }, { "GRID RTX6000-4Q"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x1329, 0, { 0 }, { "GRID RTX6000-6Q"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x132a, 0, { 0 }, { "GRID RTX6000-8Q"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x132b, 0, { 0 }, { "GRID RTX6000-12Q" } },
-	{ 3, 0x1007, 0x1e30, 0, 0x132c, 0, { 0 }, { "GRID RTX6000-24Q" } },
-	{ 3, 0x1007, 0x1e30, 0, 0x13bf, 0, { 0 }, { "GRID RTX6000-4C"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x13c0, 0, { 0 }, { "GRID RTX6000-6C"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x13c1, 0, { 0 }, { "GRID RTX6000-8C"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x13c2, 0, { 0 }, { "GRID RTX6000-12C" } },
-	{ 3, 0x1007, 0x1e30, 0, 0x13c3, 0, { 0 }, { "GRID RTX6000-24C" } },
-	{ 3, 0x1007, 0x1e30, 0, 0x1437, 0, { 0 }, { "GRID RTX6000-1B"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x1438, 0, { 0 }, { "GRID RTX6000-2B"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x1439, 0, { 0 }, { "GRID RTX6000-1A"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x143a, 0, { 0 }, { "GRID RTX6000-2A"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x143b, 0, { 0 }, { "GRID RTX6000-3A"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x143c, 0, { 0 }, { "GRID RTX6000-4A"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x143d, 0, { 0 }, { "GRID RTX6000-6A"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x143e, 0, { 0 }, { "GRID RTX6000-8A"  } },
-	{ 3, 0x1007, 0x1e30, 0, 0x143f, 0, { 0 }, { "GRID RTX6000-12A" } },
-	{ 3, 0x1007, 0x1e30, 0, 0x1440, 0, { 0 }, { "GRID RTX6000-24A" } },
+	/* Tesla T4 (Turing) */
+	VGPU(0x1eb8, 0x1309, "GRID T4-1B"),
+	VGPU(0x1eb8, 0x130a, "GRID T4-2B"),
+	VGPU(0x1eb8, 0x130b, "GRID T4-2B4"),
+	VGPU(0x1eb8, 0x130c, "GRID T4-1Q"),
+	VGPU(0x1eb8, 0x130d, "GRID T4-2Q"),
+	VGPU(0x1eb8, 0x130e, "GRID T4-4Q"),
+	VGPU(0x1eb8, 0x130f, "GRID T4-8Q"),
+	VGPU(0x1eb8, 0x1310, "GRID T4-16Q"),
+	VGPU(0x1eb8, 0x1311, "GRID T4-1A"),
+	VGPU(0x1eb8, 0x1312, "GRID T4-2A"),
+	VGPU(0x1eb8, 0x1313, "GRID T4-4A"),
+	VGPU(0x1eb8, 0x1314, "GRID T4-8A"),
+	VGPU(0x1eb8, 0x1315, "GRID T4-16A"),
+	VGPU(0x1eb8, 0x1345, "GRID T4-1B4"),
+	VGPU(0x1eb8, 0x1375, "GRID T4-16C"),
+	VGPU(0x1eb8, 0x139a, "GRID T4-4C"),
+	VGPU(0x1eb8, 0x139b, "GRID T4-8C"),
 
-	/* Tesla T4 */
-	{ 2, 0x1007, 0x1eb8, 0, 0x1309, 0, { 0 }, { "GRID T4-1B"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x130a, 0, { 0 }, { "GRID T4-2B"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x130b, 0, { 0 }, { "GRID T4-2B4"      } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x130c, 0, { 0 }, { "GRID T4-1Q"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x130d, 0, { 0 }, { "GRID T4-2Q"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x130e, 0, { 0 }, { "GRID T4-4Q"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x130f, 0, { 0 }, { "GRID T4-8Q"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x1310, 0, { 0 }, { "GRID T4-16Q"      } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x1311, 0, { 0 }, { "GRID T4-1A"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x1312, 0, { 0 }, { "GRID T4-2A"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x1313, 0, { 0 }, { "GRID T4-4A"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x1314, 0, { 0 }, { "GRID T4-8A"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x1315, 0, { 0 }, { "GRID T4-16A"      } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x1345, 0, { 0 }, { "GRID T4-1B4"      } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x1375, 0, { 0 }, { "GRID T4-16C"      } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x139a, 0, { 0 }, { "GRID T4-4C"       } },
-	{ 2, 0x1007, 0x1eb8, 0, 0x139b, 0, { 0 }, { "GRID T4-8C"       } },
+	/* Quadro RTX 6000 (Turing) */
+	VGPU(0x1e30, 0x1325, "GRID RTX6000-1Q"),
+	VGPU(0x1e30, 0x1326, "GRID RTX6000-2Q"),
+	VGPU(0x1e30, 0x1327, "GRID RTX6000-3Q"),
+	VGPU(0x1e30, 0x1328, "GRID RTX6000-4Q"),
+	VGPU(0x1e30, 0x1329, "GRID RTX6000-6Q"),
+	VGPU(0x1e30, 0x132a, "GRID RTX6000-8Q"),
+	VGPU(0x1e30, 0x132b, "GRID RTX6000-12Q"),
+	VGPU(0x1e30, 0x132c, "GRID RTX6000-24Q"),
+	VGPU(0x1e30, 0x13bf, "GRID RTX6000-4C"),
+	VGPU(0x1e30, 0x13c0, "GRID RTX6000-6C"),
+	VGPU(0x1e30, 0x13c1, "GRID RTX6000-8C"),
+	VGPU(0x1e30, 0x13c2, "GRID RTX6000-12C"),
+	VGPU(0x1e30, 0x13c3, "GRID RTX6000-24C"),
+	VGPU(0x1e30, 0x1437, "GRID RTX6000-1B"),
+	VGPU(0x1e30, 0x1438, "GRID RTX6000-2B"),
+	VGPU(0x1e30, 0x1439, "GRID RTX6000-1A"),
+	VGPU(0x1e30, 0x143a, "GRID RTX6000-2A"),
+	VGPU(0x1e30, 0x143b, "GRID RTX6000-3A"),
+	VGPU(0x1e30, 0x143c, "GRID RTX6000-4A"),
+	VGPU(0x1e30, 0x143d, "GRID RTX6000-6A"),
+	VGPU(0x1e30, 0x143e, "GRID RTX6000-8A"),
+	VGPU(0x1e30, 0x143f, "GRID RTX6000-12A"),
+	VGPU(0x1e30, 0x1440, "GRID RTX6000-24A"),
 
-	/* RTX A40 */
-	{ 2, 0x1007, 0x2235, 0, 0x14d5, 0, { 0 }, { "NVIDIA A40-1B"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14d6, 0, { 0 }, { "NVIDIA A40-2B"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14d7, 0, { 0 }, { "NVIDIA A40-1Q"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14d8, 0, { 0 }, { "NVIDIA A40-2Q"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14d9, 0, { 0 }, { "NVIDIA A40-3Q"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14da, 0, { 0 }, { "NVIDIA A40-4Q"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14db, 0, { 0 }, { "NVIDIA A40-6Q"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14dc, 0, { 0 }, { "NVIDIA A40-8Q"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14dd, 0, { 0 }, { "NVIDIA A40-12Q"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14de, 0, { 0 }, { "NVIDIA A40-16Q"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14df, 0, { 0 }, { "NVIDIA A40-24Q"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e0, 0, { 0 }, { "NVIDIA A40-48Q"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e1, 0, { 0 }, { "NVIDIA A40-1A"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e2, 0, { 0 }, { "NVIDIA A40-2A"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e3, 0, { 0 }, { "NVIDIA A40-3A"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e4, 0, { 0 }, { "NVIDIA A40-4A"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e5, 0, { 0 }, { "NVIDIA A40-6A"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e6, 0, { 0 }, { "NVIDIA A40-8A"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e7, 0, { 0 }, { "NVIDIA A40-12A"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e8, 0, { 0 }, { "NVIDIA A40-16A"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14e9, 0, { 0 }, { "NVIDIA A40-24A"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14ea, 0, { 0 }, { "NVIDIA A40-48A"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14f3, 0, { 0 }, { "NVIDIA A40-4C"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14f4, 0, { 0 }, { "NVIDIA A40-6C"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14f5, 0, { 0 }, { "NVIDIA A40-8C"    } },
-	{ 2, 0x1007, 0x2235, 0, 0x14f6, 0, { 0 }, { "NVIDIA A40-12C"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14f7, 0, { 0 }, { "NVIDIA A40-16C"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14f8, 0, { 0 }, { "NVIDIA A40-24C"   } },
-	{ 2, 0x1007, 0x2235, 0, 0x14f9, 0, { 0 }, { "NVIDIA A40-48C"   } },
+	/* RTX A6000 (Ampere) */
+	VGPU(0x2230, 0x14fa, "NVIDIA RTXA6000-1B"),
+	VGPU(0x2230, 0x14fb, "NVIDIA RTXA6000-2B"),
+	VGPU(0x2230, 0x14fc, "NVIDIA RTXA6000-1Q"),
+	VGPU(0x2230, 0x14fd, "NVIDIA RTXA6000-2Q"),
+	VGPU(0x2230, 0x14fe, "NVIDIA RTXA6000-3Q"),
+	VGPU(0x2230, 0x14ff, "NVIDIA RTXA6000-4Q"),
+	VGPU(0x2230, 0x1500, "NVIDIA RTXA6000-6Q"),
+	VGPU(0x2230, 0x1501, "NVIDIA RTXA6000-8Q"),
+	VGPU(0x2230, 0x1502, "NVIDIA RTXA6000-12Q"),
+	VGPU(0x2230, 0x1503, "NVIDIA RTXA6000-16Q"),
+	VGPU(0x2230, 0x1504, "NVIDIA RTXA6000-24Q"),
+	VGPU(0x2230, 0x1505, "NVIDIA RTXA6000-48Q"),
+	VGPU(0x2230, 0x1506, "NVIDIA RTXA6000-1A"),
+	VGPU(0x2230, 0x1507, "NVIDIA RTXA6000-2A"),
+	VGPU(0x2230, 0x1508, "NVIDIA RTXA6000-3A"),
+	VGPU(0x2230, 0x1509, "NVIDIA RTXA6000-4A"),
+	VGPU(0x2230, 0x150a, "NVIDIA RTXA6000-6A"),
+	VGPU(0x2230, 0x150b, "NVIDIA RTXA6000-8A"),
+	VGPU(0x2230, 0x150c, "NVIDIA RTXA6000-12A"),
+	VGPU(0x2230, 0x150d, "NVIDIA RTXA6000-16A"),
+	VGPU(0x2230, 0x150e, "NVIDIA RTXA6000-24A"),
+	VGPU(0x2230, 0x150f, "NVIDIA RTXA6000-48A"),
+	VGPU(0x2230, 0x1514, "NVIDIA RTXA6000-4C"),
+	VGPU(0x2230, 0x1515, "NVIDIA RTXA6000-6C"),
+	VGPU(0x2230, 0x1516, "NVIDIA RTXA6000-8C"),
+	VGPU(0x2230, 0x1517, "NVIDIA RTXA6000-12C"),
+	VGPU(0x2230, 0x1518, "NVIDIA RTXA6000-16C"),
+	VGPU(0x2230, 0x1519, "NVIDIA RTXA6000-24C"),
+	VGPU(0x2230, 0x151a, "NVIDIA RTXA6000-48C"),
 
 	{ 0 } /* Sentinel */
 };
+
+#undef VGPU
 
 static const uint8_t vgpu_unlock_magic_start[0x10] = {
 	0xf3, 0xf5, 0x9e, 0x3d, 0x13, 0x91, 0x75, 0x18,
@@ -785,86 +804,36 @@ static uint16_t vgpu_unlock_pci_devid_to_vgpu_capable(uint16_t pci_devid)
 {
 	switch (pci_devid)
 	{
-
-	/* GM107 */
-	case 0x139a: /* GTX 950M */
-	case 0x13b6: /* Quadro M1200, GM107 */
-	case 0x13bc: /* Quadro K1200, GM107 */
+	/* Maxwell */
+	case 0x1340 ... 0x13bd:
+	case 0x174d ... 0x179c:
 		return 0x13bd; /* Tesla M10 */
 
-	/* GK104 Uses M60 profiles */
-	case 0x1183: /* GTX 660 Ti */
-	case 0x1184: /* GTX 770 */
-	case 0x1185: /* GTX 660 OEM */
-	case 0x1187: /* GTX 760 */
-	case 0x1189: /* GTX 670 */
-	case 0x1180: /* GTX 680 */
-	case 0x1188: /* GTX 690 */
-	case 0x11ba: /* GTX K5000 */
-
-	/* GM204 */
-	case 0x13c3: /* GTX 960 GM204 OEM Edition */
-	case 0x13c2: /* GTX 970 */
-	case 0x13c1: /* GM204 Unknown */
-	case 0x13c0: /* GTX 980 */
-	case 0x13f1: /* Quadro M4000 */
-	case 0x13f0: /* Quadro M5000 */
+	/* Maxwell 2.0 */
+	case 0x13c0 ... 0x1436:
+	case 0x1617 ... 0x1667: /* GM204 */
+	case 0x17c2 ... 0x17fd: /* GM200 */
 		return 0x13f2; /* Tesla M60 */
-
-	/* GP102 */
-	case 0x1b00: /* TITAN X (Pascal) */
-	case 0x1b02: /* TITAN Xp */
-	case 0x1b06: /* GTX 1080 Ti */
-	case 0x1b30: /* Quadro P6000 */
+		
+	/* Pascal */
+	case 0x15f0 ... 0x15f1: /* GP100GL */
+	case 0x1b00 ... 0x1d56:
+	case 0x1725 ... 0x172f: /* GP100 */
 		return 0x1b38; /* Tesla P40 */
 
-	/* GP107 Uses P4 Profiles */
-	case 0x1cb1: /* NVIDIA Quadro P1000 GP107GL */
-
-	/* GP106 Uses P4 Profiles*/
-	case 0x1c09: /* P106-90 3GB  */
-	case 0x1c07: /* P106-100 6GB */
-	case 0x1c04: /* GTX 1060 5GB */
-	case 0x1c03: /* GTX 1060 6GB */
-	case 0x1c02: /* GTX 1060 3GB */
-	case 0x1c30: /* Quadro P2000 */
-	case 0x1c31: /* Quadro P2200 */
-	case 0x1C20: /* NVIDIA GeForce GTX 1060 with Max-Q Design (6GB variant) */
-	
-	/* GP104 */
-	case 0x1b80: /* GTX 1080 */
-	case 0x1b81: /* GTX 1070 */
-	case 0x1b82: /* GTX 1070 Ti */
-	case 0x1b83: /* GTX 1060 6GB */
-	case 0x1b84: /* GTX 1060 3GB */
-	case 0x1bb0: /* Quadro P5000 */
-		return 0x1bb3; /* Tesla P4 */
-
-	/* GV100 */
+	/* Volta GV100 */
 	case 0x1d81: /* Titan V 16GB */
-		return 0x1db4; /* Tesla V100 16GB PCIE */
+	case 0x1dba: /* Quadro GV100 32GB */
+		return 0x1db6; /* Tesla V100 32GB PCIE */
 
-	/* TU102 */
-	case 0x1e02: /* TITAN RTX */
-	case 0x1e04: /* RTX 2080 Ti */
-	case 0x1e07: /* RTX 2080 Ti Rev. A*/
+	/* Turing */
+	case 0x1e02 ... 0x1ff9:
+	case 0x2182 ... 0x21d1: /* TU116 */
 		return 0x1e30; /* Quadro RTX 6000 */
-
-	/* TU104 */
-	case 0x1e81: /* RTX 2080 Super */
-	case 0x1e82: /* RTX 2080 */
-	case 0x1e84: /* RTX 2070 Super */
-	case 0x1e87: /* RTX 2080 Rev. A */
-	case 0x1e89: /* RTX 2060 */
-	case 0x1eb0: /* Quadro RTX 5000 */
-	case 0x1eb1: /* Quadro RTX 4000 */
-		return 0x1eb8; /* Tesla T4 */
-
-	/* GA102 */
-	case 0x2204: /* RTX 3090 */
-	case 0x2205: /* RTX 3080 Ti */
-	case 0x2206: /* RTX 3080 */
-		return 0x2235; /* RTX A40 */
+	
+	/* Ampere */
+	case 0x2200 ... 0x2600: 
+		return 0x2230; /* RTX A6000 */
 	}
 
 	return pci_devid;
